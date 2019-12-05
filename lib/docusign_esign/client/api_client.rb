@@ -572,6 +572,32 @@ module DocuSign_eSign
       data, status_code, headers = self.call_api("POST", '/oauth/token', params)
       data
     end
+    
+    # GenerateAccessToken will exchange the authorization code for an access token and refresh tokens.
+    # @param [String] client_id DocuSign OAuth Client Id(AKA Integrator Key)
+    # @param [String] client_secret The secret key you generated when you set up the integration in DocuSign Admin console.
+    # @param [String] code The authorization refresh_token
+    def generate_access_token_from_refresh_token(client_id, client_secret, code)
+      raise ArgumentError.new('client_id cannot be empty')  if client_id.empty?
+      raise ArgumentError.new('client_secret cannot be empty')  if client_secret.empty?
+      raise ArgumentError.new('code cannot be empty')  if code.empty?
+
+      authcode = "Basic " + Base64.strict_encode64("#{client_id}:#{client_secret}")
+      params = {
+          :header_params => {
+              "Authorization" => authcode,
+              "Content-Type" => "application/x-www-form-urlencoded"
+          },
+          :form_params => {
+            "grant_type" => 'refresh_token',
+            "refresh_token" => code,
+          },
+          :return_type => 'OAuth::OAuthToken',
+          :oauth => true
+      }
+      data, status_code, headers = self.call_api("POST", '/oauth/token', params)
+      data
+    end
 
     def set_access_token(token_obj)
       self.default_headers['Authorization'] = token_obj.access_token
